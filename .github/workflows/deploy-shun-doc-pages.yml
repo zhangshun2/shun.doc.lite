@@ -17,12 +17,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - name: Enable Corepack
+        run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
 
       - name: Build Quartz
-        run: npx quartz build
+        run: pnpm exec quartz build
 
       - name: Deploy to zhangshun2/shun-doc (gh-pages)
         env:
