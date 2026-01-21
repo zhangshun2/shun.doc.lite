@@ -1,0 +1,59 @@
+name: Deploy shun-doc GitHub Pages
+
+on:
+  push:
+    branches: [v4, main, master]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build Quartz
+        run: npx quartz build
+
+      - name: Deploy to zhangshun2/shun-doc (gh-pages)
+        env:
+          DEPLOY_TOKEN: ${{ secrets.SHUN_DOC_PAGES_TOKEN }}
+        run: |
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            echo "Missing secret SHUN_DOC_PAGES_TOKEN"
+            exit 1
+          fi
+
+          rm -rf deploy
+          git clone --depth 1 "https://x-access-token:${DEPLOY_TOKEN}@github.com/zhangshun2/shun-doc.git" deploy
+          cd deploy
+
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+          fi
+
+          git rm -rf . >/dev/null 2>&1 || true
+          cp -R ../public/* .
+          touch .nojekyll
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Deploy from shun.doc.lite ${GITHUB_SHA}"
+          git push -f origin gh-pages
