@@ -26,7 +26,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build Quartz
-        run: pnpm exec quartz build
+        run: pnpm run quartz build
 
       - name: Deploy to zhangshun2/shun-doc (gh-pages)
         env:
