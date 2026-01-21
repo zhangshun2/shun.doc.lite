@@ -1,6 +1,11 @@
 .DS_Store
 .gitignore
 node_modules
+.corepack
+.pnpm-store
+pnpm-debug.log
+npm-debug.log
+yarn-error.log
 public
 prof
 tsconfig.tsbuildinfo
